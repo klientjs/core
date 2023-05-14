@@ -11,4 +11,5 @@ export default {
     "\\.(ts)$": "ts-jest"
   },
   testMatch: ["**/tests/**/*.test.ts"],
+  setupFilesAfterEnv: ['jest-extended/all'],
 };
