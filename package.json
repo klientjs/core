@@ -1,7 +1,12 @@
 {
-  "name": "open-stack",
-  "description": "",
-  "keywords": [],
+  "name": "@klient/core",
+  "description": "Extendable library able to build advanced http client",
+  "keywords": [
+    "http",
+    "client",
+    "axios",
+    "sdk"
+  ],
   "version": "0.0.0",
   "license": "MIT",
   "main": "./dist/cjs/index.js",
@@ -14,7 +19,7 @@
     "version": "1.0.0"
   },
   "repository": {
-    "url": "https://github.com/klientjs/open-stack.git",
+    "url": "https://github.com/klientjs/core.git",
     "type": "git"
   },
   "scripts": {
@@ -34,8 +39,7 @@
     "prepare:husky": "rm -rf .husky && mkdir -p .husky && npm run prepare:pre-commit && npm run prepare:commit-msg && husky install",
     "prepare:pre-commit": "husky add .husky/pre-commit 'npm run check'",
     "prepare:commit-msg": "husky add .husky/commit-msg 'npx --no -- commitlint --edit ${1}'",
-    "release": "release-it",
-    "configure": "open-stack configure"
+    "release": "release-it"
   },
   "devDependencies": {
     "@commitlint/cli": "~17.6.1",
