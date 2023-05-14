@@ -1,0 +1,34 @@
+import Bag from './services/bag';
+import Dispatcher from './services/dispatcher/dispatcher';
+import RequestFactory from './services/request/factory';
+import type Event from './events/event';
+import type Request from './services/request/request';
+import type { KlientRequestConfig } from './services/request/request';
+import type { Callback } from './services/dispatcher/dispatcher';
+import type { Parameters } from './parameters';
+export default class Klient<P extends Parameters = Parameters> {
+    readonly extensions: string[];
+    readonly parameters: Bag;
+    readonly services: Bag;
+    constructor(urlOrParams?: P | string);
+    get url(): string | undefined;
+    get debug(): boolean;
+    get factory(): RequestFactory;
+    get dispatcher(): Dispatcher;
+    extends(property: string, value: unknown, writable?: boolean): this;
+    load(names?: string[]): this;
+    on<T extends Event>(event: string, callback: Callback<T>, priority?: number, once?: boolean): this;
+    once<T extends Event>(event: string, callback: Callback<T>, priority?: number): this;
+    off<T extends Event>(event: string, callback: Callback<T>): this;
+    request<T = unknown>(urlOrConfig: KlientRequestConfig | string): Request<T>;
+    get<T = unknown>(url: string, config?: KlientRequestConfig): Request<T>;
+    post<T = unknown>(url: string, data: unknown, config?: KlientRequestConfig): Request<T>;
+    put<T = unknown>(url: string, data: unknown, config?: KlientRequestConfig): Request<T>;
+    patch<T = unknown>(url: string, data: unknown, config?: KlientRequestConfig): Request<T>;
+    delete<T = unknown>(url: string, config?: KlientRequestConfig): Request<T>;
+    head<T = unknown>(url: string, config?: KlientRequestConfig): Request<T>;
+    options<T = unknown>(url: string, config?: KlientRequestConfig): Request<T>;
+    file(urlOrConfig: KlientRequestConfig | string): Promise<Blob>;
+    cancelPendingRequests(): this;
+    isCancel(e: Error): boolean;
+}
