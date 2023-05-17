@@ -49,7 +49,7 @@ jobs:
           registry-url: ${{ env.REGISTRY_URL }}
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Publish package
         run: npm publish --access public --tag $RELEASE_TAG $DRY_ARG
