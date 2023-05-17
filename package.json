@@ -16,7 +16,7 @@
     "dist"
   ],
   "open-stack": {
-    "version": "1.0.0"
+    "version": "1.2.3"
   },
   "repository": {
     "url": "https://github.com/klientjs/core.git",

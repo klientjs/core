@@ -54,6 +54,7 @@ jobs:
       DOCTOR: ${{ github.event.inputs.doctor || 'true' }}
       DRY: ${{ github.event.inputs.dry == 'true' }}
       BRANCH: ${{ vars.UPDATE_DEPENDENCIES_BRANCH || 'actions/dependencies-update' }}
+      CACHE: ${{ vars.CACHE_DEPENDENCIES != '0' && 'npm' || '' }}
       REPORT_FILE: /tmp/dependencies_report
     steps:
       - uses: actions/checkout@v3
@@ -62,9 +63,10 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: ${{ env.CACHE }}
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Update dependencies
         uses: mathiasvr/command-output@v2.0.0
