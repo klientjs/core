@@ -4,7 +4,7 @@
 
 import { AxiosError } from 'axios';
 import { mockAxiosWithRestApi } from '@klient/testing';
-import Klient, { RequestEvent, RequestErrorEvent } from '../src';
+import Klient, { RequestEvent, RequestErrorEvent } from '..';
 
 jest.mock('axios');
 

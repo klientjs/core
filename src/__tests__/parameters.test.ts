@@ -1,4 +1,4 @@
-import Klient from '../src';
+import Klient from '..';
 
 class Test {}
 

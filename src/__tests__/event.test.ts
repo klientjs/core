@@ -8,7 +8,7 @@ import Klient, {
   RequestCancelEvent,
   RequestErrorEvent,
   RequestDoneEvent
-} from '../src';
+} from '..';
 
 jest.mock('axios');
 

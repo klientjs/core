@@ -1,14 +1,14 @@
-import SourceExtensions from '../src/extensions';
-import SourceBag from '../src/services/bag';
-import SourceDispatcher from '../src/services/dispatcher/dispatcher';
-import SourceRequestFactory from '../src/services/request/factory';
-import SourceRequest from '../src/services/request/request';
-import SourceEvent from '../src/events/event';
-import SourceRequestEvent from '../src/events/request/request';
-import SourceRequestSuccessEvent from '../src/events/request/success';
-import SourceRequestErrorEvent from '../src/events/request/error';
-import SourceRequestCancelEvent from '../src/events/request/cancel';
-import SourceRequestDoneEvent from '../src/events/request/done';
+import SourceExtensions from '../extensions';
+import SourceBag from '../services/bag';
+import SourceDispatcher from '../services/dispatcher/dispatcher';
+import SourceRequestFactory from '../services/request/factory';
+import SourceRequest from '../services/request/request';
+import SourceEvent from '../events/event';
+import SourceRequestEvent from '../events/request/request';
+import SourceRequestSuccessEvent from '../events/request/success';
+import SourceRequestErrorEvent from '../events/request/error';
+import SourceRequestCancelEvent from '../events/request/cancel';
+import SourceRequestDoneEvent from '../events/request/done';
 
 import {
   Extensions,
@@ -22,7 +22,7 @@ import {
   RequestErrorEvent,
   RequestCancelEvent,
   RequestDoneEvent
-} from '../src';
+} from '..';
 
 test('export', () => {
   expect(Extensions).toBe(SourceExtensions);

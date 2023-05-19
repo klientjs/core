@@ -9,8 +9,8 @@
     "removeComments": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noImplicitAny": true,
+    "noImplicitAny": true
   },
   "include": ["src"],
-  "exclude": ["node_modules", "tests"]
+  "exclude": ["node_modules", "src/__tests__"]
 }

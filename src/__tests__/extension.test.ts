@@ -2,7 +2,7 @@ import 'jest-extended';
 
 import { mockAxiosWithRestApi } from '@klient/testing';
 
-import Klient, { Extensions } from '../src';
+import Klient, { Extensions } from '..';
 
 jest.mock('axios');
 
