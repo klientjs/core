@@ -16,7 +16,7 @@
     "dist"
   ],
   "open-stack": {
-    "version": "1.5.2"
+    "version": "1.6.0"
   },
   "repository": {
     "url": "https://github.com/klientjs/core.git",
@@ -28,15 +28,19 @@
     "prettier": "prettier src tsconfig.json .release-it.json .prettierrc .eslintrc --check",
     "prettier:fix": "prettier src tsconfig.json .release-it.json .prettierrc .eslintrc -l --write",
     "test": "jest --passWithNoTests",
-    "dist": "rm -rf dist/* && tsc && tsc --module esnext --outDir dist/esm --moduleResolution node",
+    "dist": "npm run dist:cjs && npm run dist:esm",
+    "dist:cjs": "rm -rf dist/cjs && tsc --outDir dist/cjs --module commonjs",
+    "dist:esm": "rm -rf dist/esm && tsc --outDir dist/esm --module esnext --moduleResolution node",
     "pre-commit": "npm run lint:fix && npm run prettier:fix && npm test",
     "check": "npm run prettier && npm run lint && npm test",
     "update:dependencies": "npm-check-updates --doctorTest \"npm test && npm run dist\"",
     "update:open-stack": "open-stack update",
     "coverage:badge": "open-stack badge --output .github/badges/coverage.svg --verbose",
     "coverage:open": "open coverage/lcov-report/index.html",
-    "prepare": "npm run prepare:husky",
-    "prepare:husky": "rm -rf .husky && mkdir -p .husky && npm run prepare:pre-commit && npm run prepare:commit-msg && husky install",
+    "coverage:serve": "npx --yes http-server coverage/lcov-report",
+    "prepare": "npm run prepare:reset && npm run prepare:husky",
+    "prepare:reset": "rm -rf .husky && mkdir -p .husky",
+    "prepare:husky": "npm run prepare:pre-commit && npm run prepare:commit-msg && husky install",
     "prepare:pre-commit": "husky add .husky/pre-commit 'npm run check'",
     "prepare:commit-msg": "husky add .husky/commit-msg 'npx --no -- commitlint --edit ${1}'",
     "release": "release-it"
