@@ -87,7 +87,6 @@ See below the list of official usable extensions :
 
 *We can imagine a lot of possibilities, of course you can open an issue to purpose your own.*
 
-
 ## Requirements
 
 - [Node](https://nodejs.org/) >= v12
@@ -110,87 +109,161 @@ $ yarn add @klient/core
 
 ```js
 import Klient from '@klient/core';
+import { Resource } from '@klient/rest';
 
-//
-// Add extensions - See doc section below
-//
+// Register extensions we need
 import '@klient/jwt';
+import '@klient/rest';
 
 //
-// Build new Klient instance
+// -> @klient/core
+//
+// Configure a Klient instance for the target URL (only)
+// Klient is representing like an "SDK" of your API
 //
 const klient = new Klient({
-  url: 'https://api.example.com/v1',
-  request: {
+  url: 'http://example.rest/api',                   // Target host
+  debug: true,                                      // Debug mode
+  extensions: ['@klient/jwt', '@klient/rest'],      // Extension to load in this Klient instance
+  request: {                                        // Static Axios request config to apply for every request
     headers: {
       'Content-Type': 'application/json',
-    },
-  },
+    }
+  }
 });
 
 
 //
-// Listen requests before execution
+// -> Need 1 - Create a resource for REST apis (see @klient/rest Extension)
 //
-klient.on('request', e => {
-  console.log(
-    e.request,      // Access to Request object
-    e.config,       // Access to AxiosConfig object
-    e.context,      // Access to Request context
-  ); 
-});
 
+// Step 1 - Register a resource
+// We need to regisert a "Resource", usable after as a service. It will be the "repository" of a single resource in API.
+// By default, it allows to you to perform create|read|list|update|delete actions according to REST principles.
+klient.register('Post', '/posts');
 
-//
-// Listen requests after execution (on success)
-//
-klient.on('request:success', e => {
-  console.log(
-    e.relatedEvent, // Access to RequestEvent object
-    e.response,     // Access to AxiosResponse object
-    e.data,         // Access to AxiosResponse.data property
-  );
-});
-
-
-//
-// Listen request after execution (on failure)
-//
-klient.on('request:error', e => {
-  console.log(
-    e.relatedEvent, // Access to RequestEvent object
-    e.error,        // Access to AxiosError|Error object
-    e.response,     // Access to AxiosResponse object
-    e.data,         // Access to AxiosResponse.data property
-  );
-});
-
-
-//
-// Listen request after execution & after previous events whenever the kind of result
-//
-klient.on('request:done', e => {
-  console.log(
-    e.relatedEvent, // Access to SuccessEvent|ErrorEvent object
-    e.result,       // Access to AxiosResponse|AxiosError object
-    e.data,         // Access to AxiosResponse.data|AxiosError.response.data property
-    e.success,      // Check if request succeed
-  );
-});
-
-
-//
-// Perform a request
-// A Request object is a Promise, fulfilled only after execution of every listeners attached to request events
-// The Promise will be fulfilled as Axios does
-//
+// Step 2 - Call any resource CRUD action, automatically configured. Don't reinvent the wheel...
 klient
-  .request('/entrypoint')
-  .then(axiosResponse => {
-    console.log(axiosReponse.data);
+  .resource('Post')
+  .create({
+    title: 'My first post',
+    description: 'Not in the mood, I should ask Chat GPT to handle this part...'
   })
-  .catch(axiosError => {
-    console.log(axiosError.response);
+  .then((responseData) => {
+    // Hide a form, show success message, redirect user, sell data to China ? 
+  })
+  .catch((axiosError) => {
+    // Display an error, handle validation error, tell the user it is his fault ? 
+  })
+  ;
+
+// Optionnaly listen when request build with REST package will be executed
+klient.on('request', e => {
+  if (e.context.action === 'create' && e.context.rest === true) {
+    console.log('A Post is going to be created');
+  }
+});
+
+
+//
+// -> Need 2 - Add custom action in my resource. No Problemo
+//
+
+// Step 1 - Create a resource
+// A REST Resource is a service usable anywhere in your code, supposed to manage a single resource in API
+// It can be considerated like a "repository". The "Resource" class contains the default create|read|list|update|delete methods.
+class PostResource extends Resource {
+  constructor() {
+    // Alias, entrypoint
+    super('Post', '/posts');
+  }
+
+  // Defines as many methods you need in your resource
+  activate(itemOrId, activate = true) {
+    return this.request({                       // This method returns a Promise fulfilled with Request result
+      url: this.uri(itemOrId, 'activate'),    // Build the uri like /posts/id/activate
+      data: { activate },                     // Send data
+      method: 'PUT',                          // Supported method of target entrypoint
+      context: {                              // Set context values usable by listeners
+        action: 'activate'
+      }
+    });
+  }
+}
+
+// Step 2 - Register your custom resource
+klient.register(new PostResource());
+
+// Step 2 - just call any custom action defined in your Resource class
+klient
+  .resource('Post')
+  .activate('...')
+  .then(() => {
+    console.log('We activated the post !');
+  })
+;
+
+
+//
+// -> Need 3 - Make authenticated calls (see @klient/jwt Extension)
+//
+
+// Step 1 - Configure request made for authentication
+klient.parameters.set('jwt', {
+  // Configure token entrypoint
+  login: {
+    url: '/auth',
+    method: 'POST'
+  },
+  // Configure refresh token entrypoint (optional)
+  refresh: {
+    url: '/auth/refresh',
+    method: 'POST'
+  },
+  // Persist authentication state in a cookie (optional)
+  storage: {
+    type: 'cookie',
+    options: {
+      name: 'test',
+      path: '/'
+    }
+  }
+});
+
+klient
+  // You can optionally listen for login success
+  .on('jwt:authenticate', () => {
+    console.log('My user has getting a new token, maybe i should make him appear as logged in my app');
+  })
+  // You can optionnaly listen for credentials expiration
+  .on('jwt:expired', () => {
+    console.log('Oops, credentials has expired, maybe i should redirect user to login page ?');
+  })
+;
+
+klient.on('jwt:expired', () => {
+  console.log('Oops, credentials has expired, maybe i should redirect user to login page ?');
+});
+
+// Step 2 - Log the user in!
+klient
+  // Fetch a token with credentials as expected in your API
+  .login({ username: '...', password: '...' })
+  .then(() => {
+    // At this point, jwt:authenticate event has been emitted
+    // and every new request will contains the fetched token in header
+    // it will be added by an event listener (on request) of @klient/jwt extension
+    // Note that token can be au
+  })
+;
+
+// Step 3 - Make calls!
+// Use our Post resource service to make "list" action
+klient
+  .resource('Post')
+  .list()
+  .then((responseData) => {
+    // Too much posts fetched with so few lines, Mouahaha
   })
 ;
 ```
