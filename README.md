@@ -87,6 +87,8 @@ See below the list of official usable extensions :
 
 *We can imagine a lot of possibilities, of course you can open an issue to purpose your own.*
 
+**Additionally, you can refer to the [example implementation](https://github.com/klientjs/example) of Klient packages, used in a web project based on React which consumes a full mocked REST API.**
+
 ## Requirements
 
 - [Node](https://nodejs.org/) >= v12
