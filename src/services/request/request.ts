@@ -52,7 +52,7 @@ export default class Request<T = unknown> extends Promise<AxiosResponse<T>> {
 
   protected readonly abortController = new AbortController();
 
-  private constructor(callback: RequestCallback) {
+  protected constructor(callback: RequestCallback) {
     super(callback);
   }
 
@@ -82,7 +82,7 @@ export default class Request<T = unknown> extends Promise<AxiosResponse<T>> {
 
   reject(error: AxiosError): Promise<void> {
     this.result = error;
-    return this.dispatchResultEvent(axios.isCancel(error) ? RequestCancelEvent : RequestErrorEvent).then(() => {
+    return this.dispatchResultEvent(Request.isCancel(error) ? RequestCancelEvent : RequestErrorEvent).then(() => {
       this.callbacks.reject(this.result as AxiosError);
     });
   }
@@ -135,5 +135,9 @@ export default class Request<T = unknown> extends Promise<AxiosResponse<T>> {
 
   private get dispatcher() {
     return this.klient.dispatcher;
+  }
+
+  static isCancel(e: Error) {
+    return axios.isCancel(e);
   }
 }

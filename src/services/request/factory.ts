@@ -8,6 +8,8 @@ import Request from './request';
 import type { KlientRequestConfig } from './request';
 
 export default class RequestFactory {
+  model = Request;
+
   // Requests are stocked during their execution only.
   readonly requests: Request[] = [];
 
@@ -36,7 +38,7 @@ export default class RequestFactory {
 
   createRequest<T = unknown>(urlOrConfig: KlientRequestConfig | string): Request<T> {
     const config = typeof urlOrConfig === 'string' ? { url: urlOrConfig } : urlOrConfig;
-    const request = Request.new<T>(this.prepare(config), this.klient);
+    const request = this.model.new<T>(this.prepare(config), this.klient);
 
     // Store request during pending state only
     this.requests.push(request);
@@ -53,6 +55,10 @@ export default class RequestFactory {
       });
 
     return request;
+  }
+
+  isCancel(e: Error) {
+    return this.model.isCancel(e);
   }
 
   protected prepare(config: KlientRequestConfig): KlientRequestConfig {

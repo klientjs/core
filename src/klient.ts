@@ -1,4 +1,3 @@
-import axios from 'axios';
 import Bag from './services/bag';
 import Dispatcher from './services/dispatcher/dispatcher';
 import RequestFactory from './services/request/factory';
@@ -129,8 +128,7 @@ export default class Klient<P extends Parameters = Parameters> {
     return this;
   }
 
-  // eslint-disable-next-line class-methods-use-this
   isCancel(e: Error) {
-    return axios.isCancel(e);
+    return this.factory.isCancel(e);
   }
 }
