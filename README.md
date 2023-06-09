@@ -126,7 +126,7 @@ import '@klient/rest';
 const klient = new Klient({
   url: 'http://example.rest/api',                   // Target host
   debug: true,                                      // Debug mode
-  extensions: ['@klient/jwt', '@klient/rest'],      // Extension to load in this Klient instance
+  extensions: ['@klient/jwt', '@klient/rest'],      // Optionally specify extension to load
   request: {                                        // Static Axios request config to apply for every request
     headers: {
       'Content-Type': 'application/json',
@@ -157,7 +157,7 @@ klient
   .catch((axiosError) => {
     // Display an error, handle validation error, tell the user it is his fault ? 
   })
-  ;
+;
 
 // Optionnaly listen when request build with REST package will be executed
 klient.on('request', e => {
@@ -1553,7 +1553,7 @@ const klient = new Klient('https://api.example.com/v1');
 //
 // See loaded extensions
 //
-console.log(klient.extensions); // Print ['rest']
+console.log(klient.extensions); // Print ['@klient/rest']
 
 
 //
@@ -1569,7 +1569,6 @@ klient.register('User', '/users');
 The cancel method uses the "abortController" of Axios config. The request can be cancelled only on axios execution step. The cancellation will reject your promise as axios does.
 
 ```js
-import axios from 'axios';
 import Klient from '@klient/core';
 
 //
