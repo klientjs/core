@@ -1,4 +1,3 @@
-import { AxiosError } from 'axios';
 import { mockAxiosWithRestApi } from '@klient/testing';
 
 import Klient, {
@@ -7,7 +6,8 @@ import Klient, {
   RequestSuccessEvent,
   RequestCancelEvent,
   RequestErrorEvent,
-  RequestDoneEvent
+  RequestDoneEvent,
+  AxiosError
 } from '..';
 
 jest.mock('axios');

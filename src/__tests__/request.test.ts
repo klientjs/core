@@ -2,9 +2,8 @@
  * @jest-environment jsdom
  */
 
-import { AxiosError } from 'axios';
 import { mockAxiosWithRestApi } from '@klient/testing';
-import Klient, { RequestEvent, RequestErrorEvent } from '..';
+import Klient, { RequestEvent, RequestErrorEvent, AxiosError } from '..';
 
 jest.mock('axios');
 
