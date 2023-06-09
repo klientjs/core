@@ -1,22 +1,22 @@
 import * as deepmerge from 'deepmerge';
 import * as objectPath from 'object-path';
 
-type Collection = { [alias: string]: unknown };
+type BagItems = Record<string, unknown>;
 
 export default class Bag {
-  constructor(private collection: Collection = {}) {}
+  constructor(private items: BagItems = {}) {}
 
   get(path: string) {
-    return objectPath.get(this.collection, path);
+    return objectPath.get(this.items, path);
   }
 
   set(path: string, value: unknown): this {
-    objectPath.set(this.collection, path, value);
+    objectPath.set(this.items, path, value);
     return this;
   }
 
-  merge(...collection: Collection[]): this {
-    this.collection = deepmerge.all<Collection>([this.collection, ...collection], {
+  merge(...items: BagItems[]): this {
+    this.items = deepmerge.all<BagItems>([this.items, ...items], {
       // Replacing array with next value
       arrayMerge: (_destinationArray: unknown[], sourceArray: unknown[]) => sourceArray,
       // Merge only array & plain object
@@ -27,6 +27,6 @@ export default class Bag {
   }
 
   all() {
-    return this.collection;
+    return this.items;
   }
 }
