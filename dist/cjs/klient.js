@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const axios_1 = require("axios");
 const bag_1 = require("./services/bag");
 const dispatcher_1 = require("./services/dispatcher/dispatcher");
 const factory_1 = require("./services/request/factory");
@@ -88,7 +87,7 @@ class Klient {
         return this;
     }
     isCancel(e) {
-        return axios_1.default.isCancel(e);
+        return this.factory.isCancel(e);
     }
 }
 exports.default = Klient;

@@ -21,7 +21,7 @@ export default class Request<T = unknown> extends Promise<AxiosResponse<T>> {
     protected callbacks: PromiseCallbacks;
     protected readonly primaryEvent: RequestEvent<T>;
     protected readonly abortController: AbortController;
-    private constructor();
+    protected constructor(callback: RequestCallback);
     static new<T>({ context, ...axiosConfig }: KlientRequestConfig, klient: Klient): Request<T>;
     resolve(response: AxiosResponse<T>): Promise<void>;
     reject(error: AxiosError): Promise<void>;
@@ -30,5 +30,6 @@ export default class Request<T = unknown> extends Promise<AxiosResponse<T>> {
     private doRequest;
     private dispatchResultEvent;
     private get dispatcher();
+    static isCancel(e: Error): boolean;
 }
 export {};

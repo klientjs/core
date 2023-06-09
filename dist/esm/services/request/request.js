@@ -46,7 +46,7 @@ export default class Request extends Promise {
     }
     reject(error) {
         this.result = error;
-        return this.dispatchResultEvent(axios.isCancel(error) ? RequestCancelEvent : RequestErrorEvent).then(() => {
+        return this.dispatchResultEvent(Request.isCancel(error) ? RequestCancelEvent : RequestErrorEvent).then(() => {
             this.callbacks.reject(this.result);
         });
     }
@@ -90,5 +90,8 @@ export default class Request extends Promise {
     }
     get dispatcher() {
         return this.klient.dispatcher;
+    }
+    static isCancel(e) {
+        return axios.isCancel(e);
     }
 }

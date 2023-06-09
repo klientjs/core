@@ -1,4 +1,3 @@
-import axios from 'axios';
 import Bag from './services/bag';
 import Dispatcher from './services/dispatcher/dispatcher';
 import RequestFactory from './services/request/factory';
@@ -86,6 +85,6 @@ export default class Klient {
         return this;
     }
     isCancel(e) {
-        return axios.isCancel(e);
+        return this.factory.isCancel(e);
     }
 }

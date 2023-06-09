@@ -3,6 +3,7 @@ import Request from './request';
 export default class RequestFactory {
     constructor(klient) {
         this.klient = klient;
+        this.model = Request;
         this.requests = [];
     }
     request(urlOrConfig) {
@@ -20,7 +21,7 @@ export default class RequestFactory {
     }
     createRequest(urlOrConfig) {
         const config = typeof urlOrConfig === 'string' ? { url: urlOrConfig } : urlOrConfig;
-        const request = Request.new(this.prepare(config), this.klient);
+        const request = this.model.new(this.prepare(config), this.klient);
         this.requests.push(request);
         request
             .then((r) => {
@@ -32,6 +33,9 @@ export default class RequestFactory {
             return e;
         });
         return request;
+    }
+    isCancel(e) {
+        return this.model.isCancel(e);
     }
     prepare(config) {
         return deepmerge.all([

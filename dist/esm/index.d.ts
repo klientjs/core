@@ -1,4 +1,5 @@
 import Klient from './klient';
+export { AxiosError } from 'axios';
 export { default as Extensions } from './extensions';
 export { default as Bag } from './services/bag';
 export { default as Dispatcher } from './services/dispatcher/dispatcher';

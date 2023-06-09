@@ -1,12 +1,10 @@
-declare type Collection = {
-    [alias: string]: unknown;
-};
+declare type BagItems = Record<string, unknown>;
 export default class Bag {
-    private collection;
-    constructor(collection?: Collection);
+    private items;
+    constructor(items?: BagItems);
     get(path: string): any;
     set(path: string, value: unknown): this;
-    merge(...collection: Collection[]): this;
-    all(): Collection;
+    merge(...items: BagItems[]): this;
+    all(): BagItems;
 }
 export {};

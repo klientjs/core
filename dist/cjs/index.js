@@ -1,7 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.RequestDoneEvent = exports.RequestCancelEvent = exports.RequestErrorEvent = exports.RequestSuccessEvent = exports.RequestEvent = exports.Event = exports.Request = exports.RequestFactory = exports.Dispatcher = exports.Bag = exports.Extensions = void 0;
+exports.RequestDoneEvent = exports.RequestCancelEvent = exports.RequestErrorEvent = exports.RequestSuccessEvent = exports.RequestEvent = exports.Event = exports.Request = exports.RequestFactory = exports.Dispatcher = exports.Bag = exports.Extensions = exports.AxiosError = void 0;
 const klient_1 = require("./klient");
+var axios_1 = require("axios");
+Object.defineProperty(exports, "AxiosError", { enumerable: true, get: function () { return axios_1.AxiosError; } });
 var extensions_1 = require("./extensions");
 Object.defineProperty(exports, "Extensions", { enumerable: true, get: function () { return extensions_1.default; } });
 var bag_1 = require("./services/bag");
