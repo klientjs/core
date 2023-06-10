@@ -41,7 +41,7 @@
   * [Used a shared extension](#used-a-shared-extension)
 - [Request](#request)
   * [Cancel](#cancel)
-  * [Resolve/Reject manually](#resolve-reject-manually)
+  * [Override Axios execution](#override-axios-execution)
   * [Execute request manually](#execute-request-manually)
 - [Debug](#debug)
 
@@ -99,8 +99,12 @@ See below the list of official usable extensions :
 Install core package with your favorite package manager :
 
 ```shell
+# As axios is used by many packages, we recommand you to install it in your project
+# to avoid reference conflict between multiple version used by node_modules packages
+# npm install axios@0
+
 # With NPM
-$ npm install @klient/core
+$ npm install klient/core
 
 # With YARN
 $ yarn add @klient/core
@@ -1604,53 +1608,7 @@ request.cancel();
 klient.cancelPendingRequests();
 ```
 
-### Resolve/Reject manually
-
-```js
-import Klient from '@klient/core';
-
-//
-// Build Klient instance
-//
-const klient = new Klient('https://api.example.com/v1');
-
-
-//
-// Request can be resolved with an AxiosResponse from a listener callback
-//
-klient.on('request', e => {
-  return e.request.resolve({
-    status: 200,
-    data: {
-      success: true
-    },
-  });
-});
-
-
-//
-// Request can be rejected with an Error instance
-//
-klient.on('request', e => {
-  return e.request.reject(new Error('...'));
-});
-
-
-//
-// Create manually a execution timeout, just for the example
-//
-setTimeout(async () => {
-  if (!request.result) {
-    await request.reject(new Error('Too long'));
-  }
-}, 1500);
-
-
-//
-// Perform an http request
-//
-klient.request({ url: '/test' });
-```
+### Override Axios execution
 
 By default the request handler is Axios, but you can replace it by your own handler :
 

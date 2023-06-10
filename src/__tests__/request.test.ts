@@ -3,7 +3,7 @@
  */
 
 import { mockAxiosWithRestApi } from '@klient/testing';
-import Klient, { RequestEvent, RequestErrorEvent, AxiosError } from '..';
+import Klient, { RequestEvent, RequestErrorEvent } from '..';
 
 jest.mock('axios');
 
@@ -185,62 +185,14 @@ test('request:file', async () => {
     });
 });
 
-test('request:rejected', () => {
-  const klient = new Klient();
-
-  const spyRequestErrorEvent = jest.fn();
-
-  klient.on('request', (e: RequestEvent) => {
-    return e.request.reject(new AxiosError());
-  });
-
-  klient.on('request:error', (e: RequestErrorEvent) => {
-    spyRequestErrorEvent(e.data);
-  });
-
-  return klient
-    .request('/')
-    .then(() => {
-      throw new Error('This request must failed');
-    })
-    .catch(() => {
-      expect(spyRequestErrorEvent).toBeCalledWith(undefined);
-      expect(spyRequestErrorEvent).toBeCalledTimes(1);
-    });
-});
-
-test('request:resolved', async () => {
-  const klient = new Klient();
-
-  const spyRequestSuccessEvent = jest.fn();
-
-  klient.on('request', (e: RequestEvent) => {
-    return e.request.resolve({ status: 200, statusText: 'OK', data: [], headers: {}, config: {} });
-  });
-
-  klient.on('request:success', (e: RequestErrorEvent) => {
-    spyRequestSuccessEvent(e.data);
-  });
-
-  await klient
-    .request('/')
-    .then(() => {
-      expect(spyRequestSuccessEvent).toBeCalledWith([]);
-      expect(spyRequestSuccessEvent).toBeCalledTimes(1);
-    })
-    .catch((e) => {
-      console.log(e);
-      throw e;
-    });
-});
-
 test('request:handler', async () => {
   const klient = new Klient();
 
   const spyRequestSuccessEvent = jest.fn();
+  const spyRequestErrorEvent = jest.fn();
   const spyRequestHandler = jest.fn();
 
-  klient.on('request', (e: RequestEvent) => {
+  klient.once('request', (e: RequestEvent) => {
     e.request.handler = () => {
       spyRequestHandler();
       return Promise.resolve({ status: 200, statusText: 'OK', data: [], headers: {}, config: {} });
@@ -251,15 +203,40 @@ test('request:handler', async () => {
     spyRequestSuccessEvent(e.request.result);
   });
 
+  klient.on('request:error', (e: RequestErrorEvent) => {
+    spyRequestErrorEvent(e.data);
+  });
+
   await klient
     .request('/')
     .then((response) => {
       expect(spyRequestSuccessEvent).toBeCalledWith(response);
       expect(spyRequestSuccessEvent).toBeCalledTimes(1);
+      expect(spyRequestHandler).toBeCalledTimes(1);
+      expect(spyRequestErrorEvent).toBeCalledTimes(0);
     })
     .catch((e) => {
       console.log(e);
       throw e;
+    });
+
+  klient.once('request', (e: RequestEvent) => {
+    e.request.handler = () => {
+      spyRequestHandler();
+      return Promise.reject(new Error());
+    };
+  });
+
+  await klient
+    .request('/')
+    .then(() => {
+      throw new Error('This request must failed');
+    })
+    .catch(() => {
+      expect(spyRequestErrorEvent).toBeCalledTimes(1);
+      expect(spyRequestErrorEvent).toBeCalledWith(undefined);
+      expect(spyRequestHandler).toBeCalledTimes(2);
+      expect(spyRequestSuccessEvent).toBeCalledTimes(1);
     });
 });
 

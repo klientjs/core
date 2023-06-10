@@ -73,18 +73,8 @@ export default class Request<T = unknown> extends Promise<AxiosResponse<T>> {
     return request;
   }
 
-  resolve(response: AxiosResponse<T>): Promise<void> {
-    this.result = response;
-    return this.dispatchResultEvent(RequestSuccessEvent).then(() => {
-      this.callbacks.resolve(this.result as AxiosResponse<T>);
-    });
-  }
-
-  reject(error: AxiosError): Promise<void> {
-    this.result = error;
-    return this.dispatchResultEvent(Request.isCancel(error) ? RequestCancelEvent : RequestErrorEvent).then(() => {
-      this.callbacks.reject(this.result as AxiosError);
-    });
+  static isCancel(e: Error) {
+    return axios.isCancel(e);
   }
 
   cancel(): this {
@@ -105,7 +95,7 @@ export default class Request<T = unknown> extends Promise<AxiosResponse<T>> {
     return this;
   }
 
-  private doRequest(): this {
+  protected doRequest(): this {
     if (!this.result) {
       this.handler(this.config)
         .then((r) => {
@@ -119,7 +109,21 @@ export default class Request<T = unknown> extends Promise<AxiosResponse<T>> {
     return this;
   }
 
-  private dispatchResultEvent(EventClass: RequestEventTypes): Promise<void> {
+  protected resolve(response: AxiosResponse<T>): Promise<void> {
+    this.result = response;
+    return this.dispatchResultEvent(RequestSuccessEvent).then(() => {
+      this.callbacks.resolve(this.result as AxiosResponse<T>);
+    });
+  }
+
+  protected reject(error: AxiosError): Promise<void> {
+    this.result = error;
+    return this.dispatchResultEvent(Request.isCancel(error) ? RequestCancelEvent : RequestErrorEvent).then(() => {
+      this.callbacks.reject(this.result as AxiosError);
+    });
+  }
+
+  protected dispatchResultEvent(EventClass: RequestEventTypes): Promise<void> {
     const event = new EventClass(this.primaryEvent);
 
     return new Promise((resolve) => {
@@ -133,11 +137,7 @@ export default class Request<T = unknown> extends Promise<AxiosResponse<T>> {
     });
   }
 
-  private get dispatcher() {
+  protected get dispatcher() {
     return this.klient.dispatcher;
-  }
-
-  static isCancel(e: Error) {
-    return axios.isCancel(e);
   }
 }
