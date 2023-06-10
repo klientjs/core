@@ -6,6 +6,15 @@
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Usage](#usage)
+- [Events](#events)
+  * [Listeners](#listeners)
+  * [Request lifecycle](#request-lifecycle)
+  * [RequestEvent](#requestevent)
+  * [RequestSuccessEvent](#requestsuccessevent)
+  * [RequestErrorEvent](#requesterrorevent)
+  * [RequestDoneEvent](#requestdoneevent)
+  * [RequestCancelEvent](#requestcancelevent)
+  * [Dispatch events](#dispatch-events)
 - [Klient instance](#klient-instance)
   * [Parameters](#parameters)
   * [Properties](#properties)
@@ -25,15 +34,6 @@
     + [load](#load)
     + [extends](#extends)
     + [cancelPendingRequests](#cancelpendingrequests)
-- [Events](#events)
-  * [Listeners](#listeners)
-  * [Workflow](#workflow)
-  * [RequestEvent](#requestevent)
-  * [RequestSuccessEvent](#requestsuccessevent)
-  * [RequestErrorEvent](#requesterrorevent)
-  * [RequestDoneEvent](#requestdoneevent)
-  * [RequestCancelEvent](#requestcancelevent)
-  * [Dispatch events](#dispatch-events)
 - [Services](#services)
 - [Extensions](#extensions)
   * [Create an extension](#create-an-extension)
@@ -46,8 +46,6 @@
 - [Debug](#debug)
 
 &nbsp;
-
-# Klient
 
 
 ## Introduction
@@ -272,6 +270,270 @@ klient
     // Too much posts fetched with so few lines, Mouahaha
   })
 ;
+```
+
+
+## Events
+
+Events allow listeners to perform actions on objects like request. By default, only request events are emitted.
+
+### Listeners
+
+These are caracteristics of a listeners :
+
+- A listener i a callback attached to an uniq event.
+- All listeners attached to an event will be invoked in order of their priorities.
+- A listener can return a Promise to perfom an async actions, but it will suspend the dispatch process untill the returned Promise isn't fullfilled.
+- A listener is considerated as failed if an error is thrown or if a rejected Promise is returned.
+- A listener can stop the dispatch propagation of the event by using `event.stopPropagation()`, so the listeners with lower priorities will be skipped.
+
+*Note that the dispatch process purposes 2 different strategies : "abort on listener failure" OR "ignore listeners failures" (See [Dispatch events](#dispatch-events))*
+
+```js
+import Klient from '@klient/core';
+
+//
+// Build Klient instance
+//
+const klient = new Klient('https://api.example.com/v1');
+
+
+//
+// Register a listener on request event with no priority
+//
+klient.on('request', e => {...});
+
+
+//
+// This listener will be invoked before previous one because its priority is higher.
+// As the listener is returning a Promise, this will suspend the dispatch process.
+// The previous listener will be called only after this listener treatment.
+//
+klient.on('request', e => {
+  // Simulate an async process
+  return new Promise(resolve => {
+    // The next listener will be executed only after 3 seconds
+    setTimeout(resolve, 3000);
+  });
+}, 2);
+
+
+//
+// This listener will stop propagation, listeners with priority lower than "1" won't be invoked 
+// So, for a file request, the first listener declared will be skipped.
+//
+klient.on('request', e => {
+  if (e.context.action === 'file') {
+    // If e.stopPropagation is called, listeners with lower priority won't be invoked
+    e.stopPropagation();
+
+    // If e.skipNextListeners is called, the next X listeners won't be invoked
+    // e.skipNextListeners(2);
+
+    // If e.skipToListener is called, the next listeners won't be invoked
+    // untill listener with defined id 
+    // e.skipUntilListener(5);
+  }
+}, 1);
+
+
+//
+// Register listeners on many events
+//
+klient.on('request:success', e => {...});
+klient.on('request:error', e => {...});
+klient.on('request:done', e => {...});
+
+
+//
+// The first declared listener won't be invoked
+//
+klient.file('/robots.txt');
+```
+
+### Request lifecycle
+
+When a request will be executed, "request" events are dispatched in a specific order describe below : 
+
+```
+const klient = new Klient('http://example.com');
+
+klient
+  .request('/workflow')
+    |
+    |
+   (1)───[ Dispatch "request" Event ]
+    |
+    |    This event allows listeners edit/finalize request config.
+    |    For example, a listener can append an auth token in headers.
+    |    This event is dispatch with "abort on listener failure" strategy,
+    |    so, if a listener failed on this event, request will be rejected.
+    |
+    |
+   (2)───[ Execute request with Axios ]
+    |
+    |
+   (3)─────────[ OPTIONAL : Dispatch "request:cancel" Event ]
+    |
+    |          If the request cancel method has been called before/during axios execution,
+    |          the request will be rejected with an AxiosCancelledError.
+    |
+    |
+    |
+    |─── At this point, the request has been executed with Axios
+    |    and the result is available.
+    |
+    |
+   (4)───[ Dispatch "request:success" OR "request:error" Event ]
+    |
+    |    Theses events give access to request hydrated with the Axios result.
+    |
+    |
+    |
+   (5)───[ Dispatch "request:done" Event ]
+    |
+    |    It's the last event emitted on every request, dispatched whenever the result type.
+    |
+    |
+    |
+   (6)───[ Request promise is fulfilled as Axios does ]
+    |
+    |
+   .then(axiosResponse => {...})
+   .catch(axiosError => {...})
+   .finally(() => {...})
+;
+```
+
+### RequestEvent
+
+> alias = `request`
+
+The request event is dispatched with abortOnFailure strategy on, so if a listener failed, the request will be rejected.
+
+**Properties**
+
+| Name    | Type                  | Description                  |
+|---------|-----------------------|------------------------------|
+| request | `Request`             | The current request object.  |
+| config  | `AxiosRequestConfig`  | Get current request config.  |
+| action  | `string \| undefined` | Get current request action.  |
+| context | `object`              | Get current request context. |
+
+
+### RequestSuccessEvent
+
+> alias = `request:success`
+
+The RequestSuccessEvent is emitted after Axios execution (in success case). It allows to access AxiosResponse.
+
+**Properties**
+
+*All properties of RequestEvent are also available.*
+
+| Name         | Type                 | Description                                               |
+|--------------|----------------------|-----------------------------------------------------------|
+| relatedEvent | `RequestEvent`       | The RequestEvent instance emitted before Axios execution. |
+| response     | `AxiosResponse`      | The current response object.                              |
+| data         | `AxiosResponse.data` | The current response data.                                |
+
+### RequestErrorEvent
+
+> alias = `request:error`
+
+The RequestErrorEvent is emitted after Axios execution (in failure case). It allows to access AxiosError.
+
+**Properties**
+
+*All properties of RequestEvent are also available.*
+
+| Name         | Type                       | Description                                                                                      |
+|--------------|----------------------------|--------------------------------------------------------------------------------------------------|
+| relatedEvent | `RequestEvent`             | The RequestEvent instance emitted before Axios execution.                                        |
+| error        | `AxiosError \| Error`      | The current error object.                                                                        |
+| response     | `AxiosError.response`      | The current error response object (available only if Axios failed for an invalid response code). |
+| data         | `AxiosError.response.data` | The current error response data.                                                                 |
+
+### RequestDoneEvent
+
+> alias = `request:done`
+
+The RequestDoneEvent is emitted just after RequestSuccessEvent or RequestErrorEvent.
+
+**Properties**
+
+*All properties of RequestEvent are also available.*
+
+| Name         | Type                                             | Description                              |
+|--------------|--------------------------------------------------|------------------------------------------|
+| relatedEvent | `RequestSuccessEvent \| RequestErrorEvent`       | The event dispatched before this one.    |
+| result       | `AxiosResponse \| AxiosError \| Error`           | Get request result.                      |
+| success      | `boolean`                                        | Check if result is an instance of Error. |
+| data         | `AxiosResponse.data \| AxiosError.response.data` |                                          |
+
+### RequestCancelEvent
+
+> alias = `request:cancel`
+
+The RequestCancelEvent is emitted when the request cancel method is called.
+
+**Properties**
+
+*All properties of RequestEvent are also available.*
+
+| Name         | Type                 | Description                              |
+|--------------|----------------------|------------------------------------------|
+| relatedEvent | `RequestEvent`       | The event dispatched before this one.    |
+
+
+### Dispatch events
+
+```js
+import Klient, { Event } from '@klient/core';
+
+//
+// Create custom event class extending of base Event class
+//
+class CustomEvent extends Event {
+  // The event name can be used to listen it
+  static NAME = 'custom-event';
+
+  constructor(relatedObject) {
+    this.relatedObject = relatedObject;
+  }
+}
+
+
+//
+// Build Klient instance
+//
+const klient = new Klient('...');
+
+
+//
+// Register a listener for the custom event
+//
+klient.on('custom-event', e => {
+  console.log(e.relatedObject.test); // Print true
+});
+
+
+//
+// Create instance of the custom event in order to dispatch it
+//
+const event = new CustomEvent({ test: true });
+
+
+//
+// Dispatch your event with strategy "abort when listener failed"
+//
+klient.dispatcher.dispatch(event);
+
+
+//
+// Dispatch your event with strategy "ignore listeners failures"
+//
+klient.dispatcher.dispatch(event, false);
 ```
 
 ## Klient instance
@@ -1156,268 +1418,6 @@ klient.cancelPendingRequests();
 
 &nbsp;
 
-## Events
-
-Events allow listeners to perform actions on objects like request. By default, only request events are emitted.
-
-### Listeners
-
-These are caracteristics of a listeners :
-
-- A listener i a callback attached to an uniq event.
-- All listeners attached to an event will be invoked in order of their priorities.
-- A listener can return a Promise to perfom an async actions, but it will suspend the dispatch process untill the returned Promise isn't fullfilled.
-- A listener is considerated as failed if an error is thrown or if a rejected Promise is returned.
-- A listener can stop the dispatch propagation of the event by using `event.stopPropagation()`, so the listeners with lower priorities will be skipped.
-
-*Note that the dispatch process purposes 2 different strategies : "abort on listener failure" OR "ignore listeners failures" (See [Dispatch events](#dispatch-events))*
-
-```js
-import Klient from '@klient/core';
-
-//
-// Build Klient instance
-//
-const klient = new Klient('https://api.example.com/v1');
-
-
-//
-// Register a listener on request event with no priority
-//
-klient.on('request', e => {...});
-
-
-//
-// This listener will be invoked before previous one because its priority is higher.
-// As the listener is returning a Promise, this will suspend the dispatch process.
-// The previous listener will be called only after this listener treatment.
-//
-klient.on('request', e => {
-  // Simulate an async process
-  return new Promise(resolve => {
-    // The next listener will be executed only after 3 seconds
-    setTimeout(resolve, 3000);
-  });
-}, 2);
-
-
-//
-// This listener will stop propagation, listeners with priority lower than "1" won't be invoked 
-// So, for a file request, the first listener declared will be skipped.
-//
-klient.on('request', e => {
-  if (e.context.action === 'file') {
-    // If e.stopPropagation is called, listeners with lower priority won't be invoked
-    e.stopPropagation();
-
-    // If e.skipNextListeners is called, the next X listeners won't be invoked
-    // e.skipNextListeners(2);
-
-    // If e.skipToListener is called, the next listeners won't be invoked
-    // untill listener with defined id 
-    // e.skipUntilListener(5);
-  }
-}, 1);
-
-
-//
-// Register listeners on many events
-//
-klient.on('request:success', e => {...});
-klient.on('request:error', e => {...});
-klient.on('request:done', e => {...});
-
-
-//
-// The first declared listener won't be invoked
-//
-klient.file('/robots.txt');
-```
-
-### Workflow
-
-When a request will be executed, "request" events are dispatched in a specific order describe below : 
-
-```
-const klient = new Klient('http://example.com');
-
-klient
-  .request('/workflow')
-    |
-    |
-   (1)───[ Dispatch "request" Event ]
-    |
-    |    This event allows listeners edit/finalize request config.
-    |    For example, a listener can append an auth token in headers.
-    |    This event is dispatch with "abort on listener failure" strategy,
-    |    so, if a listener failed on this event, request will be rejected.
-    |
-    |
-   (2)───[ Execute request with Axios ]
-    |
-    |
-   (3)─────────[ OPTIONAL : Dispatch "request:cancel" Event ]
-    |
-    |          If the request cancel method has been called before/during axios execution,
-    |          the request will be rejected with an AxiosCancelledError.
-    |
-    |
-    |
-    |─── At this point, the request has been executed with Axios
-    |    and the result is available.
-    |
-    |
-   (4)───[ Dispatch "request:success" OR "request:error" Event ]
-    |
-    |    Theses events give access to request hydrated with the Axios result.
-    |
-    |
-    |
-   (5)───[ Dispatch "request:done" Event ]
-    |
-    |    It's the last event emitted on every request, dispatched whenever the result type.
-    |
-    |
-    |
-   (6)───[ Request promise is fulfilled as Axios does ]
-    |
-    |
-   .then(axiosResponse => {...})
-   .catch(axiosError => {...})
-   .finally(() => {...})
-;
-```
-
-### RequestEvent
-
-> alias = `request`
-
-The request event is dispatched with abortOnFailure strategy on, so if a listener failed, the request will be rejected.
-
-**Properties**
-
-| Name    | Type                  | Description                  |
-|---------|-----------------------|------------------------------|
-| request | `Request`             | The current request object.  |
-| config  | `AxiosRequestConfig`  | Get current request config.  |
-| action  | `string \| undefined` | Get current request action.  |
-| context | `object`              | Get current request context. |
-
-
-### RequestSuccessEvent
-
-> alias = `request:success`
-
-The RequestSuccessEvent is emitted after Axios execution (in success case). It allows to access AxiosResponse.
-
-**Properties**
-
-*All properties of RequestEvent are also available.*
-
-| Name         | Type                 | Description                                               |
-|--------------|----------------------|-----------------------------------------------------------|
-| relatedEvent | `RequestEvent`       | The RequestEvent instance emitted before Axios execution. |
-| response     | `AxiosResponse`      | The current response object.                              |
-| data         | `AxiosResponse.data` | The current response data.                                |
-
-### RequestErrorEvent
-
-> alias = `request:error`
-
-The RequestErrorEvent is emitted after Axios execution (in failure case). It allows to access AxiosError.
-
-**Properties**
-
-*All properties of RequestEvent are also available.*
-
-| Name         | Type                       | Description                                                                                      |
-|--------------|----------------------------|--------------------------------------------------------------------------------------------------|
-| relatedEvent | `RequestEvent`             | The RequestEvent instance emitted before Axios execution.                                        |
-| error        | `AxiosError \| Error`      | The current error object.                                                                        |
-| response     | `AxiosError.response`      | The current error response object (available only if Axios failed for an invalid response code). |
-| data         | `AxiosError.response.data` | The current error response data.                                                                 |
-
-### RequestDoneEvent
-
-> alias = `request:done`
-
-The RequestDoneEvent is emitted just after RequestSuccessEvent or RequestErrorEvent.
-
-**Properties**
-
-*All properties of RequestEvent are also available.*
-
-| Name         | Type                                             | Description                              |
-|--------------|--------------------------------------------------|------------------------------------------|
-| relatedEvent | `RequestSuccessEvent \| RequestErrorEvent`       | The event dispatched before this one.    |
-| result       | `AxiosResponse \| AxiosError \| Error`           | Get request result.                      |
-| success      | `boolean`                                        | Check if result is an instance of Error. |
-| data         | `AxiosResponse.data \| AxiosError.response.data` |                                          |
-
-### RequestCancelEvent
-
-> alias = `request:cancel`
-
-The RequestCancelEvent is emitted when the request cancel method is called.
-
-**Properties**
-
-*All properties of RequestEvent are also available.*
-
-| Name         | Type                 | Description                              |
-|--------------|----------------------|------------------------------------------|
-| relatedEvent | `RequestEvent`       | The event dispatched before this one.    |
-
-
-### Dispatch events
-
-```js
-import Klient, { Event } from '@klient/core';
-
-//
-// Create custom event class extending of base Event class
-//
-class CustomEvent extends Event {
-  // The event name can be used to listen it
-  static NAME = 'custom-event';
-
-  constructor(relatedObject) {
-    this.relatedObject = relatedObject;
-  }
-}
-
-
-//
-// Build Klient instance
-//
-const klient = new Klient('...');
-
-
-//
-// Register a listener for the custom event
-//
-klient.on('custom-event', e => {
-  console.log(e.relatedObject.test); // Print true
-});
-
-
-//
-// Create instance of the custom event in order to dispatch it
-//
-const event = new CustomEvent({ test: true });
-
-
-//
-// Dispatch your event with strategy "abort when listener failed"
-//
-klient.dispatcher.dispatch(event);
-
-
-//
-// Dispatch your event with strategy "ignore listeners failures"
-//
-klient.dispatcher.dispatch(event, false);
-```
 
 ## Services
 
