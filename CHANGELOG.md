@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.3.0](https://github.com/klientjs/core/compare/1.2.1...1.3.0) (2023-06-10)
+
+
+### Features
+
+* make request resolve and reject method protected ([59d7f22](https://github.com/klientjs/core/commit/59d7f226af812560bdc613abaa13e0c126dca7db))
+
 # [1.2.0](https://github.com/klientjs/core/compare/1.1.0...1.2.0) (2023-06-09)
 
 

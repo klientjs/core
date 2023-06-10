@@ -38,17 +38,8 @@ export default class Request extends Promise {
         request.context = Object.assign(Object.assign({}, request.context), context);
         return request;
     }
-    resolve(response) {
-        this.result = response;
-        return this.dispatchResultEvent(RequestSuccessEvent).then(() => {
-            this.callbacks.resolve(this.result);
-        });
-    }
-    reject(error) {
-        this.result = error;
-        return this.dispatchResultEvent(Request.isCancel(error) ? RequestCancelEvent : RequestErrorEvent).then(() => {
-            this.callbacks.reject(this.result);
-        });
+    static isCancel(e) {
+        return axios.isCancel(e);
     }
     cancel() {
         this.abortController.abort();
@@ -77,6 +68,18 @@ export default class Request extends Promise {
         }
         return this;
     }
+    resolve(response) {
+        this.result = response;
+        return this.dispatchResultEvent(RequestSuccessEvent).then(() => {
+            this.callbacks.resolve(this.result);
+        });
+    }
+    reject(error) {
+        this.result = error;
+        return this.dispatchResultEvent(Request.isCancel(error) ? RequestCancelEvent : RequestErrorEvent).then(() => {
+            this.callbacks.reject(this.result);
+        });
+    }
     dispatchResultEvent(EventClass) {
         const event = new EventClass(this.primaryEvent);
         return new Promise((resolve) => {
@@ -90,8 +93,5 @@ export default class Request extends Promise {
     }
     get dispatcher() {
         return this.klient.dispatcher;
-    }
-    static isCancel(e) {
-        return axios.isCancel(e);
     }
 }
