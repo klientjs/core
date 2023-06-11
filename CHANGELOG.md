@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.4.0](https://github.com/klientjs/core/compare/1.3.1...1.4.0) (2023-06-11)
+
+
+### Features
+
+* reduce complexity of bag class used by services and parameters ([ad18d50](https://github.com/klientjs/core/commit/ad18d50533095322cf7abba13615a84b2264aad7))
+
 ## [1.3.1](https://github.com/klientjs/core/compare/1.3.0...1.3.1) (2023-06-11)
 
 
