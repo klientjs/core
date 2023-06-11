@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.1](https://github.com/klientjs/core/compare/1.3.0...1.3.1) (2023-06-11)
+
+
+### Bug Fixes
+
+* export DebugEvent class ([f48bdb8](https://github.com/klientjs/core/commit/f48bdb822bc7babcc82d56f4dd3d01d7591bc735))
+
 # [1.3.0](https://github.com/klientjs/core/compare/1.2.1...1.3.0) (2023-06-10)
 
 

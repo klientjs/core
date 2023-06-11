@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.RequestDoneEvent = exports.RequestCancelEvent = exports.RequestErrorEvent = exports.RequestSuccessEvent = exports.RequestEvent = exports.Event = exports.Request = exports.RequestFactory = exports.Dispatcher = exports.Bag = exports.Extensions = exports.AxiosError = void 0;
+exports.RequestDoneEvent = exports.RequestCancelEvent = exports.RequestErrorEvent = exports.RequestSuccessEvent = exports.RequestEvent = exports.DebugEvent = exports.Event = exports.Request = exports.RequestFactory = exports.Dispatcher = exports.Bag = exports.Extensions = exports.AxiosError = void 0;
 const klient_1 = require("./klient");
 var axios_1 = require("axios");
 Object.defineProperty(exports, "AxiosError", { enumerable: true, get: function () { return axios_1.AxiosError; } });
@@ -16,6 +16,8 @@ var request_1 = require("./services/request/request");
 Object.defineProperty(exports, "Request", { enumerable: true, get: function () { return request_1.default; } });
 var event_1 = require("./events/event");
 Object.defineProperty(exports, "Event", { enumerable: true, get: function () { return event_1.default; } });
+var debug_1 = require("./events/debug");
+Object.defineProperty(exports, "DebugEvent", { enumerable: true, get: function () { return debug_1.default; } });
 var request_2 = require("./events/request/request");
 Object.defineProperty(exports, "RequestEvent", { enumerable: true, get: function () { return request_2.default; } });
 var success_1 = require("./events/request/success");
