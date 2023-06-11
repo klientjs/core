@@ -8,6 +8,7 @@ export { default as Dispatcher } from './services/dispatcher/dispatcher';
 export { default as RequestFactory } from './services/request/factory';
 export { default as Request } from './services/request/request';
 export { default as Event } from './events/event';
+export { default as DebugEvent } from './events/debug';
 export { default as RequestEvent } from './events/request/request';
 export { default as RequestSuccessEvent } from './events/request/success';
 export { default as RequestErrorEvent } from './events/request/error';

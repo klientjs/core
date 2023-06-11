@@ -4,6 +4,7 @@ import SourceDispatcher from '../services/dispatcher/dispatcher';
 import SourceRequestFactory from '../services/request/factory';
 import SourceRequest from '../services/request/request';
 import SourceEvent from '../events/event';
+import SourceDebugEvent from '../events/debug';
 import SourceRequestEvent from '../events/request/request';
 import SourceRequestSuccessEvent from '../events/request/success';
 import SourceRequestErrorEvent from '../events/request/error';
@@ -17,6 +18,7 @@ import {
   RequestFactory,
   Request,
   Event,
+  DebugEvent,
   RequestEvent,
   RequestSuccessEvent,
   RequestErrorEvent,
@@ -31,6 +33,7 @@ test('export', () => {
   expect(RequestFactory).toBe(SourceRequestFactory);
   expect(Request).toBe(SourceRequest);
   expect(Event).toBe(SourceEvent);
+  expect(DebugEvent).toBe(SourceDebugEvent);
   expect(RequestEvent).toBe(SourceRequestEvent);
   expect(RequestSuccessEvent).toBe(SourceRequestSuccessEvent);
   expect(RequestErrorEvent).toBe(SourceRequestErrorEvent);

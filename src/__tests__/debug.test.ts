@@ -1,7 +1,6 @@
 import { mockAxiosWithRestApi } from '@klient/testing';
 
-import Klient from '..';
-import DebugEvent from '../events/debug';
+import Klient, { DebugEvent } from '..';
 
 jest.mock('axios');
 

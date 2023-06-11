@@ -44,6 +44,7 @@
   * [Override Axios execution](#override-axios-execution)
   * [Execute request manually](#execute-request-manually)
 - [Debug](#debug)
+  * [DebugEvent](#debugevent)
 
 &nbsp;
 
@@ -1722,3 +1723,16 @@ klient.on('debug', (e) => {
   }
 });
 ```
+
+### DebugEvent
+
+> alias = `debug`
+
+**Properties**
+
+| Name         | Type                       | Description                                                                   |
+|--------------|----------------------------|-------------------------------------------------------------------------------|
+| action       | `string`                   | The current dispatch step (start, invoking, invoked, stopped, failed, end).   |
+| relatedEvent | `Event`                    | The current dispatched event.                                                 |
+| handler      | `Listner\|Listeners`       | The current target handler(s)                                                 |
+| error        | `Error \| null`            | Hydrated only if error an occured.                                            |
