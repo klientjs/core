@@ -1,4 +1,4 @@
-import Klient from '..';
+import Klient, { Bag } from '..';
 
 class Test {}
 
@@ -31,6 +31,7 @@ test('constructor', () => {
   expect(klient.url).toBe('http://localhost');
   expect(klient.debug).toBe(true);
   expect(klient.parameters.get('request.headers.Content-Type')).toBe('application/json');
+  expect(klient.parameters).toBeInstanceOf(Bag);
 
   const customParam = klient.parameters.get('customParam');
 
@@ -40,5 +41,6 @@ test('constructor', () => {
   expect(customParam[1]).toBeInstanceOf(Test);
 
   expect(klient.parameters.all()).toBeInstanceOf(Object);
+  expect(klient.parameters.all()).not.toBeInstanceOf(Bag);
   expect(klient.parameters.all().name).toBe('KlientTest');
 });
