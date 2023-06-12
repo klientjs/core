@@ -1,4 +1,4 @@
-import Bag from './services/bag';
+import Bag from './services/bag/bag';
 import Dispatcher from './services/dispatcher/dispatcher';
 import RequestFactory from './services/request/factory';
 import Extensions from './extensions';

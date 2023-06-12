@@ -598,18 +598,31 @@ klient.parameters.get('request.headers');
 
 
 //
-// Set a new parameter
+// Set a custom parameter
 // 
 klient.parameters.set('env', 'dev');
 
 
 //
-// Overwrite a parameter dynamically
+// Overwrite an existant parameter
 // 
 klient.parameters.set('request.headers', {
   'Content-Type': 'application/json',
   'Authorization': 'Test',
 });
+
+
+//
+// Listen for changes by watching specific property
+// Will execute callback when target property value has been changed
+//
+klient.parameters.watch(
+  'request.headers',    // target path
+  (next, prev) => {    // Runnable callback
+    // ...
+  },
+  false                // Execute if a nested prop changed (deep option)
+);
 
 
 //

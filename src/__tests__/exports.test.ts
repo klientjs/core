@@ -1,5 +1,5 @@
 import SourceExtensions from '../extensions';
-import SourceBag from '../services/bag';
+import SourceBag from '../services/bag/bag';
 import SourceDispatcher from '../services/dispatcher/dispatcher';
 import SourceRequestFactory from '../services/request/factory';
 import SourceRequest from '../services/request/request';
