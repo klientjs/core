@@ -6,7 +6,7 @@ var axios_1 = require("axios");
 Object.defineProperty(exports, "AxiosError", { enumerable: true, get: function () { return axios_1.AxiosError; } });
 var extensions_1 = require("./extensions");
 Object.defineProperty(exports, "Extensions", { enumerable: true, get: function () { return extensions_1.default; } });
-var bag_1 = require("./services/bag");
+var bag_1 = require("./services/bag/bag");
 Object.defineProperty(exports, "Bag", { enumerable: true, get: function () { return bag_1.default; } });
 var dispatcher_1 = require("./services/dispatcher/dispatcher");
 Object.defineProperty(exports, "Dispatcher", { enumerable: true, get: function () { return dispatcher_1.default; } });

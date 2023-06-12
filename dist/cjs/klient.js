@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const bag_1 = require("./services/bag");
+const bag_1 = require("./services/bag/bag");
 const dispatcher_1 = require("./services/dispatcher/dispatcher");
 const factory_1 = require("./services/request/factory");
 const extensions_1 = require("./extensions");

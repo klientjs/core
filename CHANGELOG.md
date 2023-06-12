@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.5.0](https://github.com/klientjs/core/compare/1.4.0...1.5.0) (2023-06-12)
+
+
+### Features
+
+* allow listen for changes made on parameters and bag objects ([2efd0ca](https://github.com/klientjs/core/commit/2efd0ca9bd2c5e1645fc6f150e9151fc5646f292))
+
 # [1.4.0](https://github.com/klientjs/core/compare/1.3.1...1.4.0) (2023-06-11)
 
 

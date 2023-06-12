@@ -1,7 +1,7 @@
 import Klient from './klient';
 export { AxiosError } from 'axios';
 export { default as Extensions } from './extensions';
-export { default as Bag } from './services/bag';
+export { default as Bag } from './services/bag/bag';
 export { default as Dispatcher } from './services/dispatcher/dispatcher';
 export { default as RequestFactory } from './services/request/factory';
 export { default as Request } from './services/request/request';
