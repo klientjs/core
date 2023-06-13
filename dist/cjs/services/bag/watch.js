@@ -5,23 +5,23 @@ const objectPath = require("object-path");
 const deepDiff = require("deep-diff");
 const instances = {};
 const watchers = {};
-function getInstanceId(wachtable) {
+function getInstanceId(watchable) {
     const ids = Object.keys(instances);
     let id = null;
     for (let i = 0, len = ids.length; i < len; i += 1) {
-        if (instances[ids[i]] === wachtable) {
+        if (instances[ids[i]] === watchable) {
             id = ids[i];
             break;
         }
     }
     if (id === null) {
         id = Math.random().toString(36).substring(2);
-        instances[id] = wachtable;
+        instances[id] = watchable;
     }
     return id;
 }
-function getWatchers(wachtable) {
-    const id = getInstanceId(wachtable);
+function getWatchers(watchable) {
+    const id = getInstanceId(watchable);
     if (!watchers[id]) {
         watchers[id] = {};
     }

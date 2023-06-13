@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.1](https://github.com/klientjs/core/compare/1.5.0...1.5.1) (2023-06-13)
+
+
+### Features
+
+* add 'has' method in bag class ([18353fd](https://github.com/klientjs/core/commit/18353fda1537947622fd85ea68bc68e8c7d37812))
+
 # [1.5.0](https://github.com/klientjs/core/compare/1.4.0...1.5.0) (2023-06-12)
 
 

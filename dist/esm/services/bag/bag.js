@@ -11,6 +11,9 @@ export default class Bag {
     get watchers() {
         return getWatchers(this);
     }
+    has(path) {
+        return objectPath.get(this, path) !== undefined;
+    }
     get(path) {
         return objectPath.get(this.all(), path);
     }

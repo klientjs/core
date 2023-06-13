@@ -7,6 +7,7 @@ export default class Bag implements BagItems, Watchable {
         callback: WatchCallback<unknown, unknown>;
         deep: boolean;
     }[]>;
+    has(path: string): boolean;
     get(path: string): any;
     all(): import("../../toolbox/object").AnyObject;
     set(path: string, value: unknown): this;

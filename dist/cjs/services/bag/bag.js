@@ -13,6 +13,9 @@ class Bag {
     get watchers() {
         return (0, watch_1.getWatchers)(this);
     }
+    has(path) {
+        return objectPath.get(this, path) !== undefined;
+    }
     get(path) {
         return objectPath.get(this.all(), path);
     }
