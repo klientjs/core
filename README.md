@@ -43,6 +43,7 @@
   * [Create an extension](#create-an-extension)
   * [Share an extension](#share-an-extension)
   * [Use a shared extension](#use-a-shared-extension)
+- [Bag](#bag)
 - [Debug](#debug)
   * [DebugEvent](#debugevent)
 
@@ -575,14 +576,14 @@ klient.dispatcher.dispatch(event, false);
 
 A klient instance is like an SDK of target consumed service (webservice, api). You can configure it to make the most adapted requests to service endpoints. You need to create one klient instance per hostname.
 
-Klient instance is based on 2 services in a container. They are the core of whole library : `factory` (able to create Request instance) and `dispatcher` (able to register listeners and emit events). The methods of klient instance are just shortcuts to theses services methods. You can add your own services to reuse some code anywhere.
+Klient instance is based on 2 services in a container [bag](#bag). They are the core of whole library : `factory` (able to create Request instance) and `dispatcher` (able to register listeners and emit events). The methods of klient instance are just shortcuts to theses services methods. You can add your own services to reuse some code anywhere.
 
-Klient instance is also initialized with a parameters bag, where the configuration is stored and used to setup the Klient behaviour and its extensions. The extensions are used to add specific features by adding services, listeners, whose processing can be conditioned by its own parameters. You can use an existing extension or create your own by simple way.
+Klient instance is also initialized with a parameters [bag](#bag), where the configuration is stored and used to setup the Klient behaviour and its extensions. The extensions are used to add specific features by adding services, listeners, whose processing can be conditioned by its own parameters. You can use an existing extension or create your own by simple way.
 
 
 ### Parameters
 
-The Klient constructor is an object representing the parameters used to initialize the parameter bag of returned instance. It's stored as a deep object and the values are accessible from Klient instance. Nested property can be read/write by using dot notation.
+The Klient constructor is an object representing the parameters used to initialize the parameter [bag](#bag) of returned instance. It's stored as a deep object and the values are accessible from Klient instance. Nested property can be read/write by using dot notation.
 
 | Name       | Description                                                  | Type                                                                                                                                   | Default   |
 |------------|--------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|-----------|
@@ -1785,6 +1786,126 @@ klient.on('debug', (e) => {
       break;
   }
 });
+```
+
+### Bag
+
+Bag is a useful instanciable class able to store a listenable state. Note that Klient parameters and services are stored in a Bag instance.
+
+```js
+import { Bag } from '@klient/core';
+
+//
+// Create a bag
+//
+const bag = new Bag();
+
+//
+// Set value (use dot notation for nested object)
+//
+bag.set('user.id', 1);
+
+//
+// Check if value is undefind
+//
+bag.has('user.id');
+
+//
+// Read value (use dot notation for nested object)
+//
+bag.get('user');
+
+//
+// Watch value changes
+//
+bag.watch(
+  'user.firstName',
+  (nextValue, prevValue) => {
+    // ...
+  },
+  false)
+;
+
+//
+// Recursively merge new values
+//
+bag.merge({
+  user: {
+    firstName: 'Jasmine'
+  }
+});
+
+//
+// Copy values in a plain object
+//
+bag.all();
+
+//
+// CAUTION !
+// If you change property with no call to "set" or "merge" methods
+// the watchers attached to bag won't be called !
+//
+bag.user.firstName = 'Zayan';
+```
+
+In example below, we try to add a cache for limiting requests executed by Klient instance :
+
+```js
+import Klient, { Bag } from '@klient/core';
+
+//
+// Build klient instance
+//
+const klient = new Klient();
+
+//
+// Create a new bag instance to store an object representing a cache
+//
+const cache = new Bag();
+
+//
+// Attach cache state to klient instance to use it anywhere
+//
+klient.services.set('cache', cache);
+klient.extends('cache', cache);
+
+
+//
+// Now we can implement request caching (only GET methods)
+//
+const isCachableMethod = method => (method || 'GET') === 'GET'
+
+// Add GET request result in cache if enabled
+klient.on('request:success', e => {
+  const { url, method } = e.config;
+  const { useCache } = e.context;
+  const { cache } = klient;
+
+  if(isCachableMethod(method) && useCache && !cache.has(url)) {
+    // Add response content in cache
+    cache.set(url, JSON.stringify(e.data));
+  }
+});
+
+// Resolve request with cache content if it's found
+klient.on('request', e => {
+  const { url, method } = e.config;
+  const { useCache } = e.context;
+  const { cache } = klient;
+
+  if(isCachableMethod(method) && useCache && cache.has(url)) {
+    e.request.handler = () => Promise.resolve({
+      status: 200,
+      data: JSON.parse(cache.get(url))
+    });
+  }
+});
+
+// First time the api will be called
+klient.get('/example', { useCache: true });
+
+// Now, the API won't be called, and response is returned from cache
+klient.get('/example', { useCache: true });
 ```
 
 ### DebugEvent
