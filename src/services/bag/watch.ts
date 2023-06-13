@@ -27,12 +27,12 @@ const watchers: Record<string, Record<string, WatcherItem[]>> = {};
 /**
  * Determine the instance ID for given watchable object.
  */
-function getInstanceId(wachtable: Watchable) {
+function getInstanceId(watchable: Watchable) {
   const ids = Object.keys(instances);
   let id = null;
 
   for (let i = 0, len = ids.length; i < len; i += 1) {
-    if (instances[ids[i]] === wachtable) {
+    if (instances[ids[i]] === watchable) {
       id = ids[i];
       break;
     }
@@ -40,7 +40,7 @@ function getInstanceId(wachtable: Watchable) {
 
   if (id === null) {
     id = Math.random().toString(36).substring(2);
-    instances[id] = wachtable;
+    instances[id] = watchable;
   }
 
   return id;
@@ -49,8 +49,8 @@ function getInstanceId(wachtable: Watchable) {
 /**
  * Extract watchers collection, grouped by path, for given watchable object
  */
-export function getWatchers(wachtable: Watchable) {
-  const id = getInstanceId(wachtable);
+export function getWatchers(watchable: Watchable) {
+  const id = getInstanceId(watchable);
 
   if (!watchers[id]) {
     watchers[id] = {};

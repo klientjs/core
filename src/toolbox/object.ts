@@ -15,7 +15,7 @@ export function isPlainArray(value: unknown) {
 }
 
 /**
- * Deep clone object properties (traverse only native  plain objects)
+ * Deep clone object properties (traverse only native plain objects)
  */
 export function softClone(obj: AnyObject) {
   const values: AnyObject = {};
