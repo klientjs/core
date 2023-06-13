@@ -19,6 +19,10 @@ export default class Bag implements BagItems, Watchable {
     return getWatchers(this);
   }
 
+  has(path: string) {
+    return objectPath.get(this, path) !== undefined;
+  }
+
   get(path: string) {
     return objectPath.get(this.all(), path);
   }
