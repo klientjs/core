@@ -17,6 +17,7 @@
   * [Dispatch events](#dispatch-events)
 - [Klient instance](#klient-instance)
   * [Parameters](#parameters)
+  * [Services](#services)
   * [Properties](#properties)
   * [Methods](#methods)
     + [request](#request)
@@ -34,15 +35,14 @@
     + [load](#load)
     + [extends](#extends)
     + [cancelPendingRequests](#cancelpendingrequests)
-- [Services](#services)
+- [Request](#request)
+  * [Cancel](#cancel)
+  * [Manual execution](#manual-execution)
+  * [Override Axios execution](#override-axios-execution)
 - [Extensions](#extensions)
   * [Create an extension](#create-an-extension)
   * [Share an extension](#share-an-extension)
-  * [Used a shared extension](#used-a-shared-extension)
-- [Request](#request)
-  * [Cancel](#cancel)
-  * [Override Axios execution](#override-axios-execution)
-  * [Execute request manually](#execute-request-manually)
+  * [Use a shared extension](#use-a-shared-extension)
 - [Debug](#debug)
   * [DebugEvent](#debugevent)
 
@@ -86,7 +86,7 @@ See below the list of official usable extensions :
 
 *We can imagine a lot of possibilities, of course you can open an issue to purpose your own.*
 
-**Additionally, you can refer to the [example implementation](https://github.com/klientjs/example) of Klient packages, used in a web project based on React which consumes a full mocked REST API.**
+**[Find here the official example implementation](https://github.com/klientjs/example) of Klient packages, used in a web project based on React which consumes a full mocked REST API**
 
 ## Requirements
 
@@ -98,7 +98,7 @@ See below the list of official usable extensions :
 Install core package with your favorite package manager :
 
 ```shell
-# As axios is used by many packages, we recommand you to install it in your project
+# As axios is many used, we recommand you to install it in your dependencies
 # to avoid reference conflict between multiple version used by node_modules packages
 # npm install axios@0
 
@@ -136,6 +136,41 @@ const klient = new Klient({
     }
   }
 });
+
+
+//
+// Listen for requests made with this klient instance
+//
+
+// klient.on('request:success', e => {...});   // Only after execution in success       (contains response)
+// klient.on('request:error', e => {...});     // Only after execution in failure       (contains error)
+// klient.on('request:done', e => {...});      // Last event dispatch for every request (contains result)
+
+// 'request' event is dispatched before request execution and allows you to customize requests dynamically
+klient.on('request', e => {
+  console.log(
+    e.request,    // Request Promise object
+    e.config,     // Axios request config
+    e.context,    // Request context
+  );
+
+  // Append a custom header to all request
+  e.config.headers.RequestedWith = 'Klient';
+});
+
+// Make requests like with Axios instance
+klient.request('/example')
+  .then(axiosResponse => {...})
+  .catch(axiosError => {...});
+
+// klient.get('/example');
+// klient.post('/example', { someData: 1 });
+// klient.put('/example', { someData: 1 });
+// klient.delete('/example');
+// ... + all verb provided by Axios API (head, options, ...)
+
+// Special method for retrieving server file as Blob object
+klient.file('/medias/guide.pdf').then(blob => download(blob));
 
 
 //
@@ -185,7 +220,7 @@ class PostResource extends Resource {
 
   // Defines as many methods you need in your resource
   activate(itemOrId, activate = true) {
-    return this.request({                       // This method returns a Promise fulfilled with Request result
+    return this.request({                     // This method returns a Promise fulfilled with Request data result
       url: this.uri(itemOrId, 'activate'),    // Build the uri like /posts/id/activate
       data: { activate },                     // Send data
       method: 'PUT',                          // Supported method of target entrypoint
@@ -199,7 +234,7 @@ class PostResource extends Resource {
 // Step 2 - Register your custom resource
 klient.register(new PostResource());
 
-// Step 2 - just call any custom action defined in your Resource class
+// Step 3 - just call any custom action defined in your Resource class
 klient
   .resource('Post')
   .activate('...')
@@ -215,26 +250,29 @@ klient
 
 // Step 1 - Configure request made for authentication
 klient.parameters.set('jwt', {
-  // Configure token entrypoint
+  // Configure token entrypoint (can be fully overrided using "map" and "configure" option)
   login: {
     url: '/auth',
-    method: 'POST'
+    method: 'POST',
+    // ... rest of static request config
   },
-  // Configure refresh token entrypoint (optional)
+  // Configure refresh token entrypoint (optional) (can be fully overrided as login)
   refresh: {
     url: '/auth/refresh',
-    method: 'POST'
+    method: 'POST',
+    // ... rest of static request config
   },
   // Persist authentication state in a cookie (optional)
   storage: {
-    type: 'cookie',
-    options: {
+    type: 'cookie',        // Also available : localStorage | static
+    options: {             // See @klient/storage for available options per storage type
       name: 'test',
       path: '/'
     }
   }
 });
 
+// Listen for JWT events
 klient
   // You can optionally listen for login success
   .on('jwt:authenticate', () => {
@@ -246,19 +284,15 @@ klient
   })
 ;
 
-klient.on('jwt:expired', () => {
-  console.log('Oops, credentials has expired, maybe i should redirect user to login page ?');
-});
-
 // Step 2 - Log the user in!
 klient
   // Fetch a token with credentials as expected in your API
   .login({ username: '...', password: '...' })
   .then(() => {
     // At this point, jwt:authenticate event has been emitted
-    // and every new request will contains the fetched token in header
-    // it will be added by an event listener (on request) of @klient/jwt extension
-    // Note that token can be au
+    // and every new request will contains the fetched token in header Authorization
+    // it will be added by a listener (on request event) declared by @klient/jwt extension
+    // The request auto authentication can be disabled by defining context.authenticate to false.
   })
 ;
 
@@ -266,7 +300,7 @@ klient
 // Use our Post resource service to make "list" action
 klient
   .resource('Post')
-  .list()
+  .list({ someQueryParams: true })
   .then((responseData) => {
     // Too much posts fetched with so few lines, Mouahaha
   })
@@ -282,11 +316,11 @@ Events allow listeners to perform actions on objects like request. By default, o
 
 These are caracteristics of a listeners :
 
-- A listener i a callback attached to an uniq event.
+- A listener is a callback attached to an uniq event.
 - All listeners attached to an event will be invoked in order of their priorities.
 - A listener can return a Promise to perfom an async actions, but it will suspend the dispatch process untill the returned Promise isn't fullfilled.
 - A listener is considerated as failed if an error is thrown or if a rejected Promise is returned.
-- A listener can stop the dispatch propagation of the event by using `event.stopPropagation()`, so the listeners with lower priorities will be skipped.
+- A listener can stop the dispatch propagation of the event by using `event.stopPropagation()`, so the listeners with lower priorities will be skipped. It can also make a specific listener skipped on need (see example below).
 
 *Note that the dispatch process purposes 2 different strategies : "abort on listener failure" OR "ignore listeners failures" (See [Dispatch events](#dispatch-events))*
 
@@ -539,7 +573,9 @@ klient.dispatcher.dispatch(event, false);
 
 ## Klient instance
 
-Klient instance is building with 2 services in a container. They are the core of whole library : `factory` (able to create Request instance) and `dispatcher` (able to register listeners and emit events). The methods of klient instance are just shortcuts to theses services methods. You can add your own services to reuse some code anywhere.
+A klient instance is like an SDK of target consumed service (webservice, api). You can configure it to make the most adapted requests to service endpoints. You need to create one klient instance per hostname.
+
+Klient instance is based on 2 services in a container. They are the core of whole library : `factory` (able to create Request instance) and `dispatcher` (able to register listeners and emit events). The methods of klient instance are just shortcuts to theses services methods. You can add your own services to reuse some code anywhere.
 
 Klient instance is also initialized with a parameters bag, where the configuration is stored and used to setup the Klient behaviour and its extensions. The extensions are used to add specific features by adding services, listeners, whose processing can be conditioned by its own parameters. You can use an existing extension or create your own by simple way.
 
@@ -635,6 +671,58 @@ klient.parameters.merge({
     }
   }
 });
+```
+
+### Services
+
+A service is an object instance containing usable functions callable everywhere in your code.
+
+```js
+import Klient from '@klient/core';
+import CustomEvent from './event';
+
+//
+// Create a custom service
+//
+class Security {
+  constructor(klient) {
+    this.klient = klient;
+
+    // Listen events
+    klient.on('request', e => {
+      // Do something
+    });
+  }
+
+  dispatchCustomEvent() {
+    // Access services
+    this.klient.dispatcher.dispatch(new CustomEvent(), false);
+  }
+}
+
+
+//
+// Build Klient instance
+//
+const klient = new Klient('...');
+
+
+//
+// Instanciate your custom service class
+//
+const security = new Security(klient);
+
+
+//
+// Set service in services storage
+//
+klient.services.set('security', security);
+
+
+//
+// Use your custom service
+//
+klient.services.get('security').dispatchCustomEvent();
 ```
 
 ### Properties
@@ -1432,62 +1520,117 @@ klient.cancelPendingRequests();
 
 &nbsp;
 
+## Request
 
-## Services
+Request is an extended Promise object build by factory service.
 
-A service is an object instance containing usable functions callable everywhere in your code.
+### Cancel
+
+The cancel method uses the "abortController" of Axios config. The request can be cancelled only on axios execution step. The cancellation will reject your promise as axios does.
 
 ```js
 import Klient from '@klient/core';
-import CustomEvent from './event';
-
-//
-// Create a custom service
-//
-class Security {
-  constructor(klient) {
-    this.klient = klient;
-
-    // Listen events
-    klient.on('request', e => {
-      // Do something
-    });
-  }
-
-  dispatchCustomEvent() {
-    // Access services
-    this.klient.dispatcher.dispatch(new CustomEvent(), false);
-  }
-}
-
 
 //
 // Build Klient instance
 //
-const klient = new Klient('...');
+const klient = new Klient('https://api.example.com/v1');
 
 
 //
-// Instanciate your custom service class
+// Perform a request
 //
-const security = new Security(klient);
+const request = klient.request({ url: '/test' })
+  .then(() => {...})
+  .catch(e => {
+    if (klient.isCancel(e)) {
+      return;
+    }
+
+    // ...
+  })
+;
 
 
 //
-// Set service in services storage
+// Cancel a single pending request
 //
-klient.services.set('security', security);
+request.cancel();
 
 
 //
-// Use your custom service
+// Cancel all pending requests
 //
-klient.services.get('security').dispatchCustomEvent();
+klient.cancelPendingRequests();
+```
+
+### Manual execution
+
+Sometimes you want to prepare a request object for executing it later.
+
+```js
+import Klient from '@klient/core';
+
+//
+// Build Klient instance
+//
+const klient = new Klient('https://api.example.com/v1');
+
+
+//
+// At this step, request is a Promise object but the request process is not started
+//
+const request = klient.factory.createRequest({ url: '/test' });
+
+
+//
+// Call "execute" method starts the request process
+//
+request
+  .execute()
+  .then(...)
+  .catch(...)
+;
+```
+
+### Override Axios execution
+
+By default the request handler is Axios, but you can replace it by your own handler :
+
+```js
+//
+// Create custom request handler like axios : (config) => Promise<AxiosResponse>
+//
+const customRequestHandler = (config) => {
+  // Reject example
+  // return Promise.reject(new Error())
+
+  // Resolve like axios
+  return Promise.resolve({
+    status: 200,
+    data: {
+      success: true
+    },
+  });
+}
+
+
+// Override request handler from listeners
+klient.on('request', e => {
+  // Axios will be replace for all request by our custom handler
+  e.request.handler = customRequestHandler;
+});
+
+// With request object
+const request = klient.factory.createRequest('/test');
+request.handler = customRequestHandler;
 ```
 
 ## Extensions
 
 Extensions are used to add features and reuse a maximum of produced code.
+
+**Official Klient extensions are based on [open-stack](https://github.com/klientjs/open-stack) template. If you want to submit your own extension, your repository must be duplicated from open-stack repository**
 
 ### Create an extension
 
@@ -1549,7 +1692,7 @@ extensions.push(extension);
 export default extension;
 ```
 
-### Used a shared extension
+### Use a shared extension
 
 The following code show you how to load an extension build like describe in previous section.
 
@@ -1580,102 +1723,9 @@ console.log(klient.extensions); // Print ['@klient/rest']
 klient.register('User', '/users');
 ```
 
-## Request
-
-### Cancel
-
-The cancel method uses the "abortController" of Axios config. The request can be cancelled only on axios execution step. The cancellation will reject your promise as axios does.
-
-```js
-import Klient from '@klient/core';
-
-//
-// Build Klient instance
-//
-const klient = new Klient('https://api.example.com/v1');
-
-
-//
-// Perform a request
-//
-const request = klient.request({ url: '/test' })
-  .then(() => {...})
-  .catch(e => {
-    if (klient.isCancel(e)) {
-      return;
-    }
-
-    // ...
-  })
-;
-
-
-//
-// Cancel a single pending request
-//
-request.cancel();
-
-
-//
-// Cancel all pending requests
-//
-klient.cancelPendingRequests();
-```
-
-### Override Axios execution
-
-By default the request handler is Axios, but you can replace it by your own handler :
-
-```js
-klient.on('request', e => {
-  // Axios will be replace for this request by our custom handler
-  e.request.handler = (config) => {
-    // Reject
-    // return Promise.reject(new Error('Too long'))
-
-    // Resolve
-    return Promise.resolve({
-      status: 200,
-      data: {
-        success: true
-      },
-    });
-  };
-});
-```
-
-### Execute request manually
-
-Sometimes you want to prepare a request object for executing it later.
-
-```js
-import Klient from '@klient/core';
-
-//
-// Build Klient instance
-//
-const klient = new Klient('https://api.example.com/v1');
-
-
-//
-// At this step, request is a Promise object but the request process is not started
-//
-const request = klient.factory.createRequest({ url: '/test' });
-
-
-//
-// Call "execute" method starts the request process
-//
-request
-  .execute()
-  .then(...)
-  .catch(...)
-;
-```
-
 ## Debug
 
-The Klient debug mode allows you to inspect dispatch process. If debug mode is enabled, the dispatcher will dispatch special event name "debug" with information about current action.
+The debug mode allows you to inspect whole dispatch process. If enabled, the dispatcher will dispatch special event name "debug" with information about current action.
 
 ```js
 import Klient from '@klient/core';
