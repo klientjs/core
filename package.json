@@ -13,7 +13,8 @@
   "types": "./dist/cjs/index.d.ts",
   "module": "./dist/esm/index.js",
   "files": [
-    "dist"
+    "dist",
+    "doc"
   ],
   "open-stack": {
     "version": "1.6.1"
