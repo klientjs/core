@@ -45,9 +45,9 @@ See below the list of official extensions, useful to configure a Klient instance
 
 | Name                                                | Description                                      | Available  |
 |-----------------------------------------------------|--------------------------------------------------|------------|
-| [@klient/jwt](https://github.com/klientjs/jwt)      | Manage requests authentication with JWT          |     ✅     |
-| [@klient/rest](https://github.com/klientjs/rest)    | Consume REST APIs                                |     ✅     |
-| [@klient/mock](https://github.com/klientjs/mock)    | Mock responses of defined requests               |     ✅     |
+| [@klient/jwt](https://github.com/klientjs/jwt)      | Manage authentication using JWT                  |     ✅     |
+| [@klient/rest](https://github.com/klientjs/rest)    | Manage resources for REST API                    |     ✅     |
+| [@klient/mock](https://github.com/klientjs/mock)    | Mock responses for specific requests             |     ✅     |
 | @klient/cache                                       | Limit api calls by caching responses             |     ❌     |
 | @klient/offline                                     | Purpose an offline mode                          |     ❌     |
 | @klient/graphql                                     | Perform graphql queries                          |     ❌     |
@@ -68,7 +68,7 @@ Install core package with your favorite package manager :
 # npm install axios@0
 
 # With NPM
-$ npm install klient/core
+$ npm install @klient/core
 
 # With YARN
 $ yarn add @klient/core
@@ -270,9 +270,9 @@ klient.register(new PostResource());
 //
 klient
   .resource('Post')
-  .enable('...')
+  .enable(1, true)
   .then(() => {
-    console.log('We enabled the post !');
+    console.log('We enabled the post #1 !');
   })
 ;
 
@@ -364,6 +364,6 @@ klient
 
 ---
 
-**[TOC](./doc/0.TOC.md) &emsp; >> &emsp; Introduction &emsp; >> &emsp; [Usage](./doc/1.Usage.md) &emsp; >> &emsp; [Events](./doc/2.Events.md) &emsp; >> &emsp; [Request](./doc/3.Request.md) &emsp; >> &emsp; [Extensions](./doc/4.Extensions.md) &emsp; >> &emsp; [Utilities](./doc/5.Utilities.md) &emsp; >> &emsp; [API](./doc/6.API.md)**
+**[TOC](./doc/0.TOC.md) &nbsp;&nbsp;>&nbsp;&nbsp; Introduction &nbsp;&nbsp;>&nbsp;&nbsp; [Usage](./doc/1.Usage.md) &nbsp;&nbsp;>&nbsp;&nbsp; [Events](./doc/2.Events.md) &nbsp;&nbsp;>&nbsp;&nbsp; [Request](./doc/3.Request.md) &nbsp;&nbsp;>&nbsp;&nbsp; [Extensions](./doc/4.Extensions.md) &nbsp;&nbsp;>&nbsp;&nbsp; [Utilities](./doc/5.Utilities.md) &nbsp;&nbsp;>&nbsp;&nbsp; [API](./doc/6.API.md)**
 
 ---
